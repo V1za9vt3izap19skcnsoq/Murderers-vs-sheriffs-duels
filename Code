@@ -1,0 +1,796 @@
+local ArrayField = loadstring(game:HttpGet("https://raw.githubusercontent.com/Hosvile/Refinement/main/MC%3AArrayfield%20Library"))()
+--Documentation url: https://docs.sirius.menu/community/arrayfield
+
+local Window = ArrayField:CreateWindow({
+        Name = "Rinns Hub",
+        LoadingTitle = "Rinns Hub",
+        LoadingSubtitle = "Code by Rinn Ui by Sirius Ui remake by Hosvile",
+        ConfigurationSaving = {
+            Enabled = true,
+            FolderName = RinnsHubConfigs, -- Create a custom folder for your hub/game
+            FileName = "RinnsHub"
+        },
+        Discord = {
+            Enabled = true,
+            Invite = "Mt9F5nc8Tg", -- The Discord invite code, do not include discord.gg/
+            RememberJoins = false -- Set this to false to make them join the discord every time they load it up
+        },
+        KeySystem = false, -- Set this to true to use our key system
+        KeySettings = {
+            Title = "ArrayField",
+            Subtitle = "Key System",
+            Note = "Join the discord (discord.gg/sirius)",
+            FileName = "ArrayFieldsKeys",
+            SaveKey = false,
+            GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like ArrayField to get the key from
+            Key = {"Hello",'Bye'},
+            Actions = {
+                [1] = {
+                    Text = 'Click here to copy the key link',
+                    OnPress = function()
+
+                    end,
+                }
+            },
+        }
+    })
+
+
+    local mainTab = Window:CreateTab("Main Tab", 4483362458) -- Title, Image
+
+local visualsTab = Window:CreateTab("Visuals Tab", 4483362458) -- Title, Image
+
+local miscTab = Window:CreateTab("Misc Tab", 4483362458) -- Title, Image
+
+
+local Label = mainTab:CreateLabel("Click the button on the top left to open tabs",Section)
+
+mainTab:CreateButton({
+    Name = "Copy Discord Link",
+    Info = {
+        Title = 'Copy Discord Link',
+        Description = 'Copys our discord server link to your clipboard',
+    },
+    Interact = 'Changable',
+    Callback = function()
+        setclipboard('https://discord.gg/VudXCDCaBN') 
+        print('Www')              
+    end,
+})
+
+local function kill_all()
+    for _, v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+        if v:FindFirstChild("Fire") then
+            game.Players.LocalPlayer.Character.Humanoid:EquipTool(v)
+            break
+        end
+    end
+
+    for _, v in pairs(game.Players:GetPlayers()) do
+        task.spawn(function()
+            pcall(function()
+                local Vec1 = Vector3.new(-186.46624755859375, 49.74998474121094, math.random(-49.323232, 49.488882))
+                local Vec2 = Vector3.new(-254.47802734375, 68.99893188476562, math.random(-49.323232, 49.488882))
+                local Vec3 = v.Character.LowerTorso
+                local Vec4 = Vector3.new(-222.7018585205078, 60.864871978759766, math.random(-49.323232, 49.488882))
+                
+                game:GetService("ReplicatedStorage").Remotes.Shoot:FireServer(Vec1, Vec2, Vec3, Vec4)
+            end)
+        end)
+    end
+end
+
+mainTab:CreateButton({
+    Name = "Kill All",
+    Info = {
+        Title = 'Kill All',
+        Description = 'Kills Everyone in your match',
+    },
+    Interact = 'Changable',
+    Callback = function()
+        kill_all()
+    end,
+})
+
+local toggleLoop = false
+
+local function kill_all_loop()
+    while toggleLoop do
+        kill_all()
+        task.wait(1)
+    end
+end
+
+mainTab:CreateToggle({
+    Name = "Loop Kill All",
+    Info = {
+        Title = 'Loop Kill All',
+        Image = '12735851647',
+        Description = 'Loops Kill everyone in your match',
+    },
+    CurrentValue = false,
+    Flag = "LoopKillAll",
+    Callback = function(Value)
+        toggleLoop = Value
+        if toggleLoop then
+            task.spawn(kill_all_loop)
+        end
+    end,
+})
+
+
+local auraEnabled = false
+local knifeRange = 15
+
+mainTab:CreateToggle({
+    Name = "Knife Aura",
+    Info = {
+        Title = 'Knife Aura',
+        Image = '12735851647',
+        Description = 'Kills anyone in the range with your knife (have your knife out)',
+    },
+    CurrentValue = false,
+    Flag = "KnifeAuraToggle",
+    Callback = function(toggleState)
+        auraEnabled = toggleState
+        if toggleState then
+            print("Knife Aura On")
+            -- Start checking for players in range
+            spawn(function()
+                while auraEnabled do
+                    local localPlayer = game.Players.LocalPlayer
+                    local localCharacter = localPlayer.Character
+                    if localCharacter and localCharacter:FindFirstChild("HumanoidRootPart") then
+                        local localPosition = localCharacter.HumanoidRootPart.Position
+                        for _, player in pairs(game.Players:GetPlayers()) do
+                            if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                                local targetPosition = player.Character.HumanoidRootPart.Position
+                                local distance = (localPosition - targetPosition).Magnitude
+                                if distance <= knifeRange then
+                                   
+                                    local args = { [1] = player.Character.UpperTorso }
+                                    game:GetService("ReplicatedStorage").Remotes.Stab:FireServer(unpack(args))
+                                    wait(0.5)
+                                end
+                            end
+                        end
+                    end
+                    wait(0.1)
+                end
+            end)
+        else
+            print("Knife Aura Off")
+        end
+    end,
+})
+
+mainTab:CreateSlider({
+    Name = "Knife Aura Range",
+    Range = {0, 30},
+    Increment = 1,
+    Suffix = "Studs",
+    CurrentValue = knifeRange,
+    Flag = "KnifeAuraRangeSlider",
+    Callback = function(num)
+        knifeRange = num
+        print("Knife range set to: " .. num)
+    end,
+})
+
+local hitboxEnabled = false
+getgenv().HitboxSize = 15
+getgenv().HitboxTransparency = 0.5
+getgenv().HitboxColor = Color3.fromRGB(255, 255, 255)
+local runService = game:GetService('RunService')
+local players = game:GetService('Players')
+local connection
+
+local function updateHitbox()
+    for _, v in next, players:GetPlayers() do
+        if v.Name ~= players.LocalPlayer.Name and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+            pcall(function()
+                if hitboxEnabled then
+                    v.Character.HumanoidRootPart.Size = Vector3.new(getgenv().HitboxSize, getgenv().HitboxSize, getgenv().HitboxSize)
+                    v.Character.HumanoidRootPart.Transparency = getgenv().HitboxTransparency
+                    v.Character.HumanoidRootPart.Color = getgenv().HitboxColor
+                    v.Character.HumanoidRootPart.Material = "Neon"
+                    v.Character.HumanoidRootPart.CanCollide = false
+                else
+                    v.Character.HumanoidRootPart.Size = Vector3.new(2, 2, 1)
+                    v.Character.HumanoidRootPart.Transparency = 1
+                    v.Character.HumanoidRootPart.BrickColor = BrickColor.new("Medium stone grey")
+                    v.Character.HumanoidRootPart.Material = "Plastic"
+                    v.Character.HumanoidRootPart.CanCollide = false
+                end
+            end)
+        end
+    end
+end
+
+mainTab:CreateToggle({
+    Name = "Hitbox",
+    Info = {
+        Title = 'Hitbox Toggle',
+        Image = '12735851647',
+        Description = 'Changes the hitbox of other players',
+    },
+    CurrentValue = false,
+    Flag = "HitboxToggle",
+    Callback = function(toggleState)
+        hitboxEnabled = toggleState
+        print(toggleState and "Hitboxes enabled" or "Hitboxes disabled")
+        
+        if hitboxEnabled then
+            connection = runService.RenderStepped:Connect(updateHitbox)
+        else
+            if connection then
+                connection:Disconnect()
+            end
+            updateHitbox()
+        end
+    end,
+})
+
+mainTab:CreateSlider({
+    Name = "Hitbox Slider",
+    Range = {2, 500},
+    Increment = 1,
+    Suffix = "Size",
+    CurrentValue = getgenv().HitboxSize,
+    Flag = "HitboxSizeSlider",
+    Callback = function(num)
+        getgenv().HitboxSize = num
+        print("Hitbox size set to:", num)
+    end,
+})
+
+mainTab:CreateInput({
+    Name = "Hitbox Transparency",
+    PlaceholderText = "0.1 - 1",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(text)
+        local transparency = tonumber(text)
+        if transparency and transparency >= 0 and transparency <= 1 then
+            getgenv().HitboxTransparency = transparency
+            print("Hitbox transparency set to:", transparency)
+        else
+            print("Invalid transparency value. Please enter a number between 0 and 1.")
+        end
+    end,
+})
+
+local ColorPicker = mainTab:CreateColorPicker({
+    Name = "Hitbox Color",
+    Color = Color3.fromRGB(255, 255, 255),
+    Flag = "ColorPicker1",
+    Callback = function(Value)
+        getgenv().HitboxColor = Value
+        print("Hitbox color set to:", Value)
+    end
+})
+
+local part
+local rainbowConnection
+
+local function createPart()
+    part = Instance.new("Part")
+    part.Size = Vector3.new(100, 1, 100)
+    part.Anchored = true
+    part.CanCollide = false
+    part.Material = Enum.Material.SmoothPlastic
+    part.Transparency = 0.25
+    part.Parent = workspace
+    rainbowConnection = game:GetService("RunService").RenderStepped:Connect(function()
+        local player = game.Players.LocalPlayer
+        if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local rootPart = player.Character.HumanoidRootPart
+            part.Position = rootPart.Position - Vector3.new(0, 7, 0)
+            local hue = (tick() % 20) / 20
+            part.Color = Color3.fromHSV(hue, 1, 1)
+        end
+    end)
+end
+
+local function removePart()
+    if rainbowConnection then
+        rainbowConnection:Disconnect()
+        rainbowConnection = nil
+    end
+    if part then
+        part:Destroy()
+        part = nil
+    end
+end
+
+visualsTab:CreateToggle({
+    Name = "Cool Part",
+    Info = {
+        Title = 'Cool Part',
+        Image = '12735851647',
+        Description = 'Makes a cool part below your feet',
+    },
+    CurrentValue = false,
+    Flag = "CoolPartToggle",
+    Callback = function(toggleState)
+        if toggleState then
+            print("On")
+            createPart()
+        else
+            print("Off")
+            removePart()
+        end
+    end,
+})
+
+local originalPosition
+
+miscTab:CreateToggle({
+    Name = "Troll Teleport",
+    Info = {
+        Title = 'Troll Teleport',
+        Image = '12735851647',
+        Description = 'Teleports you to spawn so enemies cant get you',
+    },
+    CurrentValue = false,
+    Flag = "TrollTeleportToggle",
+    Callback = function(toggleState)
+        local player = game:GetService("Players").LocalPlayer
+        if toggleState then
+            originalPosition = player.Character.HumanoidRootPart.CFrame
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(58.172, -77.441, -242.071)
+        else
+            if originalPosition then
+                player.Character.HumanoidRootPart.CFrame = originalPosition
+            end
+        end
+    end,
+})
+
+-- Teleport Buttons
+miscTab:CreateButton({
+    Name = "Teleport to 1v1",
+    Callback = function()
+        local player = game:GetService("Players").LocalPlayer
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(27.186513900756836, -92.43848419189453, -203.76683044433594)
+    end,
+})
+
+miscTab:CreateButton({
+    Name = "Teleport to 2v2",
+    Callback = function()
+        local player = game:GetService("Players").LocalPlayer
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(27.883989334106445, -92.36083221435547, -188.33795166015625)
+    end,
+})
+
+miscTab:CreateButton({
+    Name = "Teleport to 3v3",
+    Callback = function()
+        local player = game:GetService("Players").LocalPlayer
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(29.191801071166992, -92.29767608642578, -172.86553955078125)
+    end,
+})
+
+miscTab:CreateButton({
+    Name = "Teleport to 4v4",
+    Callback = function()
+        local player = game:GetService("Players").LocalPlayer
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(30.448232650756836, -92.2098159790039, -155.46713256835938)
+    end,
+})
+
+-- Button to rejoin the current server
+miscTab:CreateButton({
+    Name = "Rejoin",
+    Callback = function()
+        local player = game:GetService("Players").LocalPlayer
+        local teleportService = game:GetService("TeleportService")
+        teleportService:Teleport(game.PlaceId, player)
+    end,
+})
+
+-- Button to serverhop to a different server
+miscTab:CreateButton({
+    Name = "Serverhop",
+    Callback = function()
+        local player = game:GetService("Players").LocalPlayer
+        local teleportService = game:GetService("TeleportService")
+        local httpService = game:GetService("HttpService")
+        local servers = httpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100")).data
+
+        local availableServers = {}
+        for _, server in pairs(servers) do
+            if server.playing < server.maxPlayers and server.id ~= game.JobId then
+                table.insert(availableServers, server.id)
+            end
+        end
+
+        if #availableServers > 0 then
+            local randomServer = availableServers[math.random(1, #availableServers)]
+            teleportService:TeleportToPlaceInstance(game.PlaceId, randomServer, player)
+        else
+            print("No servers available for server hopping")
+        end
+    end,
+})
+
+local boxes = {}
+local names = {}
+local distances = {}
+local healthBars = {}
+local healthTexts = {}
+local connections = {}
+
+local function createBox(player)
+    if player == game:GetService("Players").LocalPlayer then return end
+
+    local box = Drawing.new("Square")
+    box.Thickness = 1
+    box.Transparency = 1
+    box.Color = Color3.new(1, 1, 1)
+    box.Filled = false
+    box.Outline = true
+    box.OutlineColor = Color3.new(0, 0, 0)
+    boxes[player] = box
+
+    if nameEspEnabled then
+        local name = Drawing.new("Text")
+        name.Size = 10
+        name.Color = Color3.new(1, 1, 1)
+        name.Center = true
+        name.Outline = true
+        name.OutlineColor = Color3.new(0, 0, 0)
+        name.Text = player.Name
+        names[player] = name
+    end
+
+    if distanceEspEnabled then
+        local distance = Drawing.new("Text")
+        distance.Size = 10
+        distance.Color = Color3.new(1, 1, 1)
+        distance.Center = true
+        distance.Outline = true
+        distance.OutlineColor = Color3.new(0, 0, 0)
+        distances[player] = distance
+    end
+
+    if healthBarEspEnabled then
+        local healthBar = Drawing.new("Square")
+        healthBar.Thickness = 1
+        healthBar.Transparency = 1
+        healthBar.Color = Color3.new(0, 0, 0)
+        healthBar.Filled = false
+
+        local healthBarGreen = Drawing.new("Square")
+        healthBarGreen.Thickness = 0
+        healthBarGreen.Transparency = 1
+        healthBarGreen.Color = Color3.new(0, 1, 0)
+        healthBarGreen.Filled = true
+
+        local healthBarRed = Drawing.new("Square")
+        healthBarRed.Thickness = 0
+        healthBarRed.Transparency = 1
+        healthBarRed.Color = Color3.new(1, 0, 0)
+        healthBarRed.Filled = true
+
+        healthBars[player] = {healthBar, healthBarGreen, healthBarRed}
+    end
+
+    if healthTextEspEnabled then
+        local healthText = Drawing.new("Text")
+        healthText.Size = 10
+        healthText.Color = Color3.new(1, 1, 1)
+        healthText.Center = true
+        healthText.Outline = true
+        healthText.OutlineColor = Color3.new(0, 0, 0)
+        healthTexts[player] = healthText
+    end
+end
+
+local function removeBox(player)
+    if boxes[player] then
+        boxes[player]:Remove()
+        boxes[player] = nil
+    end
+    if names[player] then
+        names[player]:Remove()
+        names[player] = nil
+    end
+    if distances[player] then
+        distances[player]:Remove()
+        distances[player] = nil
+    end
+    if healthBars[player] then
+        healthBars[player][1]:Remove()
+        healthBars[player][2]:Remove()
+        healthBars[player][3]:Remove()
+        healthBars[player] = nil
+    end
+    if healthTexts[player] then
+        healthTexts[player]:Remove()
+        healthTexts[player] = nil
+    end
+end
+
+local function updateBoxes()
+    for player, box in pairs(boxes) do
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = player.Character.HumanoidRootPart
+            local vector, onScreen = game.Workspace.CurrentCamera:WorldToViewportPoint(hrp.Position)
+            if onScreen then
+                box.Visible = true
+                local scaleFactor = 0.5 / (vector.Z / 100)
+                box.Size = Vector2.new(20 * scaleFactor, 35 * scaleFactor)
+                box.Position = Vector2.new(vector.X - 10 * scaleFactor, vector.Y - 17.5 * scaleFactor)
+
+                if names[player] then
+                    names[player].Visible = true
+                    names[player].Position = Vector2.new(vector.X, vector.Y - 20 * scaleFactor)
+                end
+
+                if distances[player] then
+                    distances[player].Visible = true
+                    local distance = (game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
+                    distances[player].Text = string.format("%.0f studs", distance)
+                    distances[player].Position = Vector2.new(vector.X, vector.Y + 20 * scaleFactor)
+                end
+
+                if healthBars[player] then
+                    local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+                    if humanoid then
+                        local health = humanoid.Health
+                        local maxHealth = humanoid.MaxHealth
+                        local healthPercent = health / maxHealth
+
+                        local healthBar = healthBars[player][1]
+                        local healthBarGreen = healthBars[player][2]
+                        local healthBarRed = healthBars[player][3]
+
+                        healthBar.Visible = true
+                        healthBarGreen.Visible = true
+                        healthBarRed.Visible = true
+
+                        healthBar.Size = Vector2.new(3 * scaleFactor, 35 * scaleFactor)
+                        healthBar.Position = Vector2.new(vector.X - 13 * scaleFactor, vector.Y - 17.5 * scaleFactor)
+
+                        healthBarGreen.Size = Vector2.new(3 * scaleFactor, 35 * scaleFactor * healthPercent)
+                        healthBarGreen.Position = Vector2.new(vector.X - 13 * scaleFactor, vector.Y - 17.5 * scaleFactor + (35 * scaleFactor * (1 - healthPercent)))
+
+                        healthBarRed.Size = Vector2.new(3 * scaleFactor, 35 * scaleFactor * (1 - healthPercent))
+                        healthBarRed.Position = Vector2.new(vector.X - 13 * scaleFactor, vector.Y - 17.5 * scaleFactor)
+                    else
+                        healthBars[player][1].Visible = false
+                        healthBars[player][2].Visible = false
+                        healthBars[player][3].Visible = false
+                    end
+                end
+
+                if healthTexts[player] then
+                    local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+                    if humanoid then
+                        local health = humanoid.Health
+                        local maxHealth = humanoid.MaxHealth
+
+                        healthTexts[player].Visible = true
+                        healthTexts[player].Text = string.format("%.0f / %.0f", health, maxHealth)
+                        healthTexts[player].Position = Vector2.new(vector.X + 15 * scaleFactor, vector.Y)
+                    else
+                        healthTexts[player].Visible = false
+                    end
+                end
+            else
+                box.Visible = false
+                if names[player] then
+                    names[player].Visible = false
+                end
+                if distances[player] then
+                    distances[player].Visible = false
+                end
+                if healthBars[player] then
+                    healthBars[player][1].Visible = false
+                    healthBars[player][2].Visible = false
+                    healthBars[player][3].Visible = false
+                end
+                if healthTexts[player] then
+                    healthTexts[player].Visible = false
+                end
+            end
+        else
+            box.Visible = false
+            if names[player] then
+                names[player].Visible = false
+            end
+            if distances[player] then
+                distances[player].Visible = false
+            end
+            if healthBars[player] then
+                healthBars[player][1].Visible = false
+                healthBars[player][2].Visible = false
+                healthBars[player][3].Visible = false
+            end
+            if healthTexts[player] then
+                healthTexts[player].Visible = false
+            end
+        end
+    end
+end
+
+local function playerAdded(player)
+    player.CharacterAdded:Connect(function()
+        createBox(player)
+    end)
+
+    player.CharacterRemoving:Connect(function()
+        removeBox(player)
+    end)
+
+    -- Create ESP for the character if it exists
+    if player.Character then
+        createBox(player)
+    end
+end
+
+local function toggleBoxESP(enabled)
+    if enabled then
+        for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+            playerAdded(player)
+        end
+        connections.renderStepped = game:GetService("RunService").RenderStepped:Connect(updateBoxes)
+    else
+        for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+            removeBox(player)
+        end
+        if connections.renderStepped then
+            connections.renderStepped:Disconnect()
+            connections.renderStepped = nil
+        end
+    end
+end
+
+local function toggleNameESP(enabled)
+    nameEspEnabled = enabled
+    for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+        if enabled then
+            if not names[player] then
+                local name = Drawing.new("Text")
+                name.Size = 10
+                name.Color = Color3.new(1, 1, 1)
+                name.Center = true
+                name.Outline = true
+                name.OutlineColor = Color3.new(0, 0, 0)
+                name.Text = player.Name
+                names[player] = name
+            end
+        else
+            if names[player] then
+                names[player]:Remove()
+                names[player] = nil
+            end
+        end
+    end
+end
+
+local function toggleDistanceESP(enabled)
+    distanceEspEnabled = enabled
+    for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+        if enabled then
+            if not distances[player] then
+                local distance = Drawing.new("Text")
+                distance.Size = 10
+                distance.Color = Color3.new(1, 1, 1)
+                distance.Center = true
+                distance.Outline = true
+                distance.OutlineColor = Color3.new(0, 0, 0)
+                distances[player] = distance
+            end
+        else
+            if distances[player] then
+                distances[player]:Remove()
+                distances[player] = nil
+            end
+        end
+    end
+end
+
+local function toggleHealthBarESP(enabled)
+    healthBarEspEnabled = enabled
+    for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+        if enabled then
+            if not healthBars[player] then
+                local healthBar = Drawing.new("Square")
+                healthBar.Thickness = 1
+                healthBar.Transparency = 1
+                healthBar.Color = Color3.new(0, 0, 0)
+                healthBar.Filled = false
+
+                local healthBarGreen = Drawing.new("Square")
+                healthBarGreen.Thickness = 0
+                healthBarGreen.Transparency = 1
+                healthBarGreen.Color = Color3.new(0, 1, 0)
+                healthBarGreen.Filled = true
+
+                local healthBarRed = Drawing.new("Square")
+                healthBarRed.Thickness = 0
+                healthBarRed.Transparency = 1
+                healthBarRed.Color = Color3.new(1, 0, 0)
+                healthBarRed.Filled = true
+
+                healthBars[player] = {healthBar, healthBarGreen, healthBarRed}
+            end
+        else
+            if healthBars[player] then
+                healthBars[player][1]:Remove()
+                healthBars[player][2]:Remove()
+                healthBars[player][3]:Remove()
+                healthBars[player] = nil
+            end
+        end
+    end
+end
+
+local function toggleHealthTextESP(enabled)
+    healthTextEspEnabled = enabled
+    for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+        if enabled then
+            if not healthTexts[player] then
+                local healthText = Drawing.new("Text")
+                healthText.Size = 10
+                healthText.Color = Color3.new(1, 1, 1)
+                healthText.Center = true
+                healthText.Outline = true
+                healthText.OutlineColor = Color3.new(0, 0, 0)
+                healthTexts[player] = healthText
+            end
+        else
+            if healthTexts[player] then
+                healthTexts[player]:Remove()
+                healthTexts[player] = nil
+            end
+        end
+    end
+end
+
+game:GetService("Players").PlayerAdded:Connect(playerAdded)
+game:GetService("Players").PlayerRemoving:Connect(removeBox)
+
+visualsTab:CreateToggle({
+    Name = "Box Esp",
+    Default = false,
+    Callback = function(value)
+        toggleBoxESP(value)
+    end
+})
+
+visualsTab:CreateToggle({
+    Name = "Name esp",
+    Default = false,
+    Callback = function(value)
+        toggleNameESP(value)
+    end
+})
+
+visualsTab:CreateToggle({
+    Name = "Distance esp",
+    Default = false,
+    Callback = function(value)
+        toggleDistanceESP(value)
+    end
+})
+
+visualsTab:CreateToggle({
+    Name = "Health Bar esp",
+    Default = false,
+    Callback = function(value)
+        toggleHealthBarESP(value)
+    end
+})
+
+visualsTab:CreateToggle({
+    Name = "Health Text esp",
+    Default = false,
+    Callback = function(value)
+        toggleHealthTextESP(value)
+    end
+}
+
+

@@ -753,8 +753,6 @@ end
 game:GetService("Players").PlayerAdded:Connect(playerAdded)
 game:GetService("Players").PlayerRemoving:Connect(removeBox)
 
-local EspSection = Tab:CreateSection("Esp",true)
-
 visualsTab:CreateToggle({
     Name = "Box Esp",
     Default = false,

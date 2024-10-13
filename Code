@@ -791,6 +791,6 @@ visualsTab:CreateToggle({
     Callback = function(value)
         toggleHealthTextESP(value)
     end
-}
+})
 
 
